@@ -21,7 +21,6 @@
 		i32.const 4
 		f32.load $mem
 		f32.add
-		call $sin
 		call $i
 	)
 	(func (export "f") (param $x f32)
