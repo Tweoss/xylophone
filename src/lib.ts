@@ -1,6 +1,10 @@
+let initializing = false;
+
 export async function init() {
+  if (initializing) return;
+  initializing = true;
   const audio_context = new AudioContext();
-  await audio_context.audioWorklet.addModule("./src/worklet.js");
+  await audio_context.audioWorklet.addModule("./build/worklet.js");
   const input = audio_context.createMediaStreamSource(
     await navigator.mediaDevices.getUserMedia({
       audio: true,
@@ -8,11 +12,6 @@ export async function init() {
   );
   console.log(input);
   console.log(audio_context.destination);
-
-  const wasm = await WebAssembly.instantiateStreaming(
-    fetch("./build/process.wasm"),
-  );
-  console.log(wasm);
 
   const processor_node = new AudioWorkletNode(
     audio_context,
