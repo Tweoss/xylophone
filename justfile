@@ -1,3 +1,9 @@
+default:
+    just build
+
+list:
+    just --list
+
 build:
     wat2wasm src/process.wat -o build/process.wasm --enable-threads --enable-multi-memory
     tsc

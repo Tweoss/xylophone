@@ -124,18 +124,5 @@
 		i32.mul
 		f32.load
 	)
-	;; (func (export "sin") (param $x f32) (result f32)
-	;; 	;; get PI
-	;; 	i32.const 100
-	;; 	call $load_f32
-	;; 	drop
-	;; 	;; 0 maps to 0, pi/4 maps to 100 / 2, pi/2 maps to  pi maps to 0
-	;; 	i32.const 0
-	;; 	f32.load $mem
-	;; )
-	;; (func (export "cos") (param $x f32) (result f32)
-	;; 	i32.const 0
-	;; 	f32.load $mem
-	;; )
 )
 

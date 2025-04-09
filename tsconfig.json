@@ -8,6 +8,7 @@
       // for DOM types
       "dom"
     ],
+    "downlevelIteration": true,
     "outDir": "build",
     "rootDir": "src",
     "sourceMap": true
