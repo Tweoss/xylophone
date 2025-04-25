@@ -7,7 +7,7 @@ export async function init() {
   await audio_context.audioWorklet.addModule("./build/worklet.js");
   const input = audio_context.createMediaStreamSource(
     await navigator.mediaDevices.getUserMedia({
-      audio: true,
+      audio: { echoCancellation: false },
     }),
   );
   console.log(input);
@@ -31,31 +31,28 @@ export async function init() {
       bars = data.map((_, i) => {
         const svgns = "http://www.w3.org/2000/svg";
         const rect = document.createElementNS(svgns, "rect");
-        rect.setAttribute("x", (i * (100 / 20)).toString());
+        rect.setAttribute("x", (i * (100 / data.length)).toString());
         rect.setAttribute("y", "00");
         rect.setAttribute("height", "00");
-        rect.setAttribute("width", (100 / 20).toString());
+        rect.setAttribute("width", (100 / data.length).toString());
 
         const rotation = ((1 + Math.sqrt(5)) / 2) * 10;
         rect.setAttribute(
           "fill",
-          `hsl(${360 * ((rotation * (i - (i % 2))) % 1)}, 90%, 90%)`,
+          `hsl(${360 * ((rotation * i) % 1)}, 90%, 90%)`,
         );
         target.appendChild(rect);
         return rect;
       });
     }
 
-    let max_value = data.reduce((a, e) => (e > a ? e : a), 0);
-    max_value = isNaN(max_value) ? 1 : max_value;
-
-    const max_height = 40;
+    const scale_factor = 4;
     for (const [i, value] of data.entries()) {
       bars[i].setAttribute(
         "height",
         Math.max(
           0,
-          (max_height * (isNaN(value) ? 0 : value)) / max_value,
+          scale_factor * (isNaN(value) ? 0 : Math.max(0, value)),
         ).toString(),
       );
     }
@@ -67,7 +64,6 @@ export async function init() {
 }
 
 export function greet() {
-  console.log("hello console");
   const p = document.createElement("p");
   p.innerText = "welcome";
   document.querySelector("p")?.appendChild(p);

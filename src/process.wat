@@ -62,9 +62,8 @@
 			f32.mul
 
 			;; abs(sin(freq / sample * 2 pi * i) * samples[i])
-			f32.abs
 
-			;; sum += abs(sin(freq / sample * 2 pi * i) * samples[i])
+			;; sum += sin(freq / sample * 2 pi * i) * samples[i]
 			local.get $sum
 			f32.add
 			local.set $sum
@@ -82,6 +81,7 @@
 		 	br_if $iter
 		)
 		local.get $sum
+		f32.abs
 	)
 	(func (export "dot_product_cos") (param $sample_rate f32) (param $freq f32) (param $start i32) (param $end i32) (param $pi f32) (result f32)
 		(local $sum f32)
@@ -103,7 +103,6 @@
 			local.get $i
 			call $load_f32
 			f32.mul
-			f32.abs
 			local.get $sum
 			f32.add
 			local.set $sum
@@ -117,6 +116,7 @@
 		 	br_if $iter
 		)
 		local.get $sum
+		f32.abs
 	)
 	(func $load_f32 (param $index i32) (result f32)
 		i32.const 4
