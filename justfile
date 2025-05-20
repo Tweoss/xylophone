@@ -9,6 +9,6 @@ build:
     tsc
     cp src/worklet.js build/worklet.js
 watch:
-    watchexec 'just build' -d 0 -v -w src
+    watchexec -d 10ms -v -w src 'just build'
 serve:
     penguin serve . -p 8080 --no-auto-watch -w index.html -w build --debounce 500
