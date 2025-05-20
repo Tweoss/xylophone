@@ -23,10 +23,38 @@ export async function init() {
     },
   );
   const target = document.querySelector("#container");
+  const log_element = document.querySelector(
+    "#text-out",
+  ) as HTMLParagraphElement;
+  const decoder = create_decoder();
   let bars: null | SVGRectElement[] = null;
+  let last_data: number[] | null = null;
+  // TODO: make better "debouncing" system
+  let ignore_next = false;
   processor_node.port.onmessage = (e) => {
     const data: number[] = e.data;
+    if (!ignore_next) {
+      if (last_data) {
+        const delta = data.map((v, i) => v - last_data[i]);
+        const [max, max_i] = delta.reduce(
+          ([a, ai], e, i) => (a > e ? [a, ai] : [e, i]),
+          [0, -1],
+        );
+        const DOT_PRODUCT_THRESHOLD = 15;
+        if (max > DOT_PRODUCT_THRESHOLD) {
+          decoder.push(max_i);
+          log_element.innerText = decoder.get_state();
+          console.log("large deltas: ", delta, max_i);
+          ignore_next = true;
+        }
+      }
+    } else {
+      ignore_next = false;
+    }
+    last_data = data;
     // console.log(data);
+    const max = 20;
+    // const max = data.reduce((a, e) => (a > e ? a : e), 1);
     if (!bars) {
       bars = data.map((_, i) => {
         const svgns = "http://www.w3.org/2000/svg";
@@ -47,7 +75,7 @@ export async function init() {
     }
 
     const scale_factor = 4;
-    for (const [i, value] of data.entries()) {
+    for (const [i, value] of data.map((d) => (d / max) * 10).entries()) {
       bars[i].setAttribute(
         "height",
         Math.max(
@@ -67,4 +95,40 @@ export function greet() {
   const p = document.createElement("p");
   p.innerText = "welcome";
   document.querySelector("p")?.appendChild(p);
+}
+
+function create_decoder() {
+  let pending = [];
+  let decoded = "";
+  let parse = () => {
+    if (pending.length == 2) {
+      const [x, y] = pending;
+      const flattened = x * 8 + y;
+      const capital_letter_range = [65, 90] as const;
+      const space_number_range = [32, 57] as const;
+      const range_len = (v: readonly [number, number]) => v[1] - v[0] + 1;
+      if (flattened < range_len(capital_letter_range))
+        decoded += String.fromCodePoint(flattened + capital_letter_range[0]);
+      else if (
+        flattened - range_len(capital_letter_range) <
+        range_len(space_number_range)
+      )
+        decoded += String.fromCodePoint(
+          flattened - range_len(capital_letter_range) + space_number_range[0],
+        );
+      else if (flattened == 7 * 8 + 7) {
+        decoded = decoded.slice(0, -1);
+      }
+      pending = [];
+    }
+  };
+  return {
+    push: (note: number) => {
+      pending.push(note);
+      parse();
+    },
+    get_state: () => {
+      return `pending: [${pending.toString()}], decoded: ${decoded}`;
+    },
+  };
 }

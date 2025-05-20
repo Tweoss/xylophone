@@ -40,13 +40,14 @@ class ForwardProcessor extends AudioWorkletProcessor {
     if (DATA_BLOCK_LEN != input[0].length)
       throw Error("mismatched length");
     for (const [i, v] of input[0].entries()) {
-      output[0][i] = this.instance.exports.add(v, input[0][i]);
+      // output[0][i] = this.instance.exports.add(v, input[0][i]);
       this.memory[(this.counter % DATA_BLOCK_CHUNKS) * DATA_BLOCK_LEN + i] = v;
     }
     if (this.counter % DATA_BLOCK_CHUNKS == 0) {
       const freqs =
         // C major scale
         [
+          // 3, 4, 5,6, 7, 8, 9, 10, 11, 12,13,  14, 15
           3, 5, 7, 8, 10, 12, 14, 15
         ].map(o => 440 * Math.pow(2, 1 + o / 12));
       const scores = freqs.flatMap(v => Math.hypot(
