@@ -53,6 +53,7 @@ export async function init() {
     }
     last_data = data;
     // console.log(data);
+    // TODO: better scaling factor?
     const max = 20;
     // const max = data.reduce((a, e) => (a > e ? a : e), 1);
     if (!bars) {
@@ -89,12 +90,6 @@ export async function init() {
 
   input.connect(processor_node);
   processor_node.connect(audio_context.destination);
-}
-
-export function greet() {
-  const p = document.createElement("p");
-  p.innerText = "welcome";
-  document.querySelector("p")?.appendChild(p);
 }
 
 function create_decoder() {

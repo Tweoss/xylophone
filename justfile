@@ -11,4 +11,4 @@ build:
 watch:
     watchexec -d 10ms -v -w src 'just build'
 serve:
-    penguin serve . -p 8080 --no-auto-watch -w index.html -w build --debounce 500
+    penguin serve . -p 9090 --no-auto-watch -w index.html -w build --debounce 500

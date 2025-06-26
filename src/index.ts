@@ -1,4 +1,3 @@
-import { greet, init } from "./lib.js";
+import { init } from "./lib.js";
 
 document.querySelector("#init").addEventListener("click", init);
-greet();
