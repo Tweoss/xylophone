@@ -75,8 +75,13 @@ export async function init() {
       });
     }
 
-    const scale_factor = 4;
+    const scale_factor = 30;
     for (const [i, value] of data.map((d) => (d / max) * 10).entries()) {
+      const v = Math.max(
+        0,
+        scale_factor * (isNaN(value) ? 0 : Math.max(0, value)),
+      );
+      bars[i].setAttribute("y", (-v).toString());
       bars[i].setAttribute(
         "height",
         Math.max(
@@ -86,7 +91,7 @@ export async function init() {
       );
     }
   };
-  console.log("made worklet");
+  // console.log("made worklet");
 
   input.connect(processor_node);
   processor_node.connect(audio_context.destination);
