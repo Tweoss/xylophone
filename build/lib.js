@@ -142,13 +142,13 @@ export function init() {
                                 return rect;
                             });
                         }
-                        var scale_factor = 30;
+                        var scale_factor = 20;
                         try {
                             for (var _c = __values(data.map(function (d) { return (d / max) * 10; }).entries()), _d = _c.next(); !_d.done; _d = _c.next()) {
                                 var _e = __read(_d.value, 2), i = _e[0], value = _e[1];
                                 var v = Math.max(0, scale_factor * (isNaN(value) ? 0 : Math.max(0, value)));
-                                bars[i].setAttribute("y", (-v).toString());
-                                bars[i].setAttribute("height", Math.max(0, scale_factor * (isNaN(value) ? 0 : Math.max(0, value))).toString());
+                                bars[i].setAttribute("y", (-v + 50).toString());
+                                bars[i].setAttribute("height", v.toString());
                             }
                         }
                         catch (e_1_1) { e_1 = { error: e_1_1 }; }

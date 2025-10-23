@@ -51,8 +51,10 @@ class ForwardProcessor extends AudioWorkletProcessor {
           3, 5, 7, 8, 10, 12, 14, 15
         ].map(o => 440 * Math.pow(2, 1 + o / 12));
       const scores = freqs.flatMap(v => Math.hypot(
-        this.instance.exports.dot_product_sin(48000, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
-        this.instance.exports.dot_product_cos(48000, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
+        this.instance.exports.dot_product_sin(44100, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
+        this.instance.exports.dot_product_cos(44100, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
+        // this.instance.exports.dot_product_sin(48000, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
+        // this.instance.exports.dot_product_cos(48000, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
       ));
       const best_index = scores
         .reduce((pv, cv, i) => {
@@ -63,7 +65,7 @@ class ForwardProcessor extends AudioWorkletProcessor {
         }, { value: 0, index: -1 });
       const f = (best_index.index % 2 == 0) ? "sin" : "cos";
       const freq = (best_index.index == -1) ? 0 : freqs[best_index.index >> 1];
-      this.port.postMessage(scores);
+        this.port.postMessage(scores);
     }
 
     this.counter += 1;
