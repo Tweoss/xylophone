@@ -78,7 +78,7 @@ export function init() {
                     _g.sent();
                     _b = (_a = audio_context).createMediaStreamSource;
                     return [4 /*yield*/, navigator.mediaDevices.getUserMedia({
-                            audio: { echoCancellation: false },
+                            audio: { echoCancellation: false, sampleRate: 44100 },
                         })];
                 case 2:
                     input = _b.apply(_a, [_g.sent()]);

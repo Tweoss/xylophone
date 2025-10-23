@@ -7,7 +7,7 @@ export async function init() {
   await audio_context.audioWorklet.addModule("./build/worklet.js");
   const input = audio_context.createMediaStreamSource(
     await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: false },
+      audio: { echoCancellation: false, sampleRate: 44100 },
     }),
   );
   console.log(input);
