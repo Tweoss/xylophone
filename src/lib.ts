@@ -81,7 +81,7 @@ export async function init() {
         0,
         scale_factor * (isNaN(value) ? 0 : Math.max(0, value)),
       );
-      bars[i].setAttribute("y", (-v + 50).toString());
+      bars[i].setAttribute("y", (-v + 70).toString());
       bars[i].setAttribute("height", v.toString());
     }
   };
