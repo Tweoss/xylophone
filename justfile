@@ -6,6 +6,7 @@ list:
 
 build:
     wat2wasm src/process.wat -o build/process.wasm --enable-threads --enable-multi-memory
+    wat2wasm src/trig.wat -o build/trig.wasm --enable-threads --enable-multi-memory
     tsc
     cp src/worklet.js build/worklet.js
 watch:

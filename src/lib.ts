@@ -19,6 +19,7 @@ export async function init() {
     {
       processorOptions: {
         module: await (await fetch("./build/process.wasm")).arrayBuffer(),
+        trig_module: await (await fetch("./build/trig.wasm")).arrayBuffer(),
       },
     },
   );
@@ -54,7 +55,7 @@ export async function init() {
     last_data = data;
     // console.log(data);
     // TODO: better scaling factor?
-    const max = 20;
+    const max = 80;
     // const max = data.reduce((a, e) => (a > e ? a : e), 1);
     if (!bars) {
       bars = data.map((_, i) => {
