@@ -52,5 +52,5 @@ jobs:
           git add -f build
           git commit -am "Automated build"
           git checkout -b pages
-          git push -u origin pages
+          git push -f -u origin pages
 
