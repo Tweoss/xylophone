@@ -6,7 +6,7 @@ list:
 
 build:
     #!/usr/bin/env bash
-    mkdir build
+    mkdir build 2>/dev/null || true
     wasm-tools parse src/process.wat -o build/process.wasm
     wasm-tools parse src/trig.wat -o build/trig.wasm
     tsc

@@ -2,32 +2,7 @@
 	(func $i (import "imports" "i") (param f32))
 	(func $sin (import "imports" "sin") (param f32) (result f32))
 	(func $cos (import "imports" "cos") (param f32) (result f32))
-	(memory $mem (import "imports" "mem") 2 2 shared)
-	(func $add (param $lhs f32) (param $rhs f32) (result f32)
-		local.get $lhs
-		local.get $rhs
-		f32.add
-	)
-	(export "add" (func $add))
-	(func $mul (param $lhs f32) (param $rhs f32) (result f32)
-		local.get $lhs
-		local.get $rhs
-		f32.mul
-	)
-	(export "mul" (func $mul))
-	(func (export "e")
-		i32.const 0
-		f32.load $mem
-		i32.const 4
-		f32.load $mem
-		f32.add
-		call $i
-	)
-	(func (export "f") (param $x f32)
-		local.get $x
-		call $sin
-		call $i
-	)
+	(memory $mem (import "imports" "mem") 1 1 shared)
 	(func (export "dot_product_sin") (param $sample_rate f32) (param $freq f32) (param $start i32) (param $end i32) (param $pi f32) (result f32)
 		;; freq 440 at sample rate 44100
 		;; => period of wave is 1/440 seconds, freq of 44100 samples/second

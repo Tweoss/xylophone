@@ -11,30 +11,32 @@ async function generate_sine(array) {
   );
   console.log(new Int32Array(memory.buffer).slice(0, buffer_length))
 
-  return {sin: (v) => obj.instance.exports.sin(
-    buffer_length,
-    initial_x,
-    Math.PI,
-    v
-  ), cos: (v) => obj.instance.exports.cos(
-    buffer_length,
-    initial_x,
-    Math.PI,
-    v
-  )};
+  return {
+    sin: (v) => obj.instance.exports.sin(
+      buffer_length,
+      initial_x,
+      Math.PI,
+      v
+    ), cos: (v) => obj.instance.exports.cos(
+      buffer_length,
+      initial_x,
+      Math.PI,
+      v
+    )
+  };
 }
 
 async function init_processor(processor, processorOptions) {
-  const {sin, cos} = await generate_sine(processorOptions.trig_module);
-  for (const i of Array.from({length: 10}, (_, i) => i)) {
-    console.log(i, "pi/5", sin(i *  Math.PI / 5));
+  const { sin, cos } = await generate_sine(processorOptions.trig_module);
+  for (const i of Array.from({ length: 10 }, (_, i) => i)) {
+    console.log(i, "pi/5", sin(i * Math.PI / 5));
   }
 
-  let memory = new WebAssembly.Memory({ initial: 2, maximum: 2, shared: true });
+  let memory = new WebAssembly.Memory({ initial: 1, maximum: 1, shared: true });
   processor.memory = new Float32Array(memory.buffer);
 
   WebAssembly.instantiate(processorOptions.module,
-    { imports: { i: console.log, mem: memory, sin, cos  } },
+    { imports: { i: console.log, mem: memory, sin, cos } },
   ).then(
     obj => {
       processor.instance = obj.instance;
@@ -56,6 +58,7 @@ class ForwardProcessor extends AudioWorkletProcessor {
     init_processor(this, processorOptions);
     // console.log(sin(Math.PI));
     this.counter = 0;
+    this.sample_rate = processorOptions.sample_rate;
   }
 
   process(inputList, outputList, _parameters) {
@@ -87,8 +90,8 @@ class ForwardProcessor extends AudioWorkletProcessor {
           3, 5, 7, 8, 10, 12, 14, 15
         ].map(o => 440 * Math.pow(2, 1 + o / 12));
       const scores = freqs.flatMap(v => Math.hypot(
-        this.instance.exports.dot_product_sin(44100, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
-        this.instance.exports.dot_product_cos(44100, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
+        this.instance.exports.dot_product_sin(this.sample_rate, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
+        this.instance.exports.dot_product_cos(this.sample_rate, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
         // this.instance.exports.dot_product_cos(44100, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
         // this.instance.exports.dot_product_sin(48000, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
         // this.instance.exports.dot_product_cos(48000, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),

@@ -20,6 +20,7 @@ export async function init() {
       processorOptions: {
         module: await (await fetch("./build/process.wasm")).arrayBuffer(),
         trig_module: await (await fetch("./build/trig.wasm")).arrayBuffer(),
+        sample_rate: audio_context.sampleRate,
       },
     },
   );
@@ -55,7 +56,7 @@ export async function init() {
     last_data = data;
     // console.log(data);
     // TODO: better scaling factor?
-    const max = 80;
+    const max = 100;
     // const max = data.reduce((a, e) => (a > e ? a : e), 1);
     if (!bars) {
       bars = data.map((_, i) => {
@@ -86,7 +87,6 @@ export async function init() {
       bars[i].setAttribute("height", v.toString());
     }
   };
-  // console.log("made worklet");
 
   input.connect(processor_node);
   processor_node.connect(audio_context.destination);
