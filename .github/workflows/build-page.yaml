@@ -10,32 +10,18 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      # ACT (testing GH actions locally) needs some dependencies
+      - uses: actions/checkout@v3
       - name: Run install
         uses: Borales/actions-yarn@v5.0.0
         with:
           cmd: install # will run `yarn install` command
-        # env:
-        #   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # if needed
-      # - name: 🚀　Build bundle
-      #   uses: Borales/actions-yarn@v5.0.0
-      #   with:
-      #     cmd: run build
-      #     dir: ./
-      # install javascript tools
-      - uses: actions/checkout@v3
+      # install tsc
       - name: install node v12
         uses: actions/setup-node@v1
         with:
           node-version: 14.17
-      # - name: yarn install
-      #   run: yarn install
-      # - name: tsc
-      #   uses: icrawl/action-tsc@v1
       - name: typescript
         run: npm install -g typescript
-      # - name: tsc
-      #   run: npm install -g tsc
       # install rust tools
       - name: "install binstall"
         uses: cargo-bins/cargo-binstall@main
