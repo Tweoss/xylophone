@@ -4,7 +4,7 @@ async function generate_sine(array) {
     imports: { log: console.log, mem: memory },
   });
   const initial_x = 1024;
-  const delta_divider = 200.0;
+  const delta_divider = 20.0;
   const buffer_length = obj.instance.exports.write_sin(
     delta_divider,
     // initial_x,
