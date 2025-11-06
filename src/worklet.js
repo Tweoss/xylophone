@@ -4,22 +4,22 @@ async function generate_sine(array) {
     imports: { log: console.log, mem: memory },
   });
   const initial_x = 1024;
-  const delta_divider = 20;
+  const delta_divider = 200.0;
   const buffer_length = obj.instance.exports.write_sin(
     delta_divider,
-    initial_x,
+    // initial_x,
   );
-  console.log(new Int32Array(memory.buffer).slice(0, buffer_length))
+  console.log(new Float32Array(memory.buffer).slice(0, buffer_length))
 
   return {
     sin: (v) => obj.instance.exports.sin(
       buffer_length,
-      initial_x,
+      // initial_x,
       Math.PI,
       v
     ), cos: (v) => obj.instance.exports.cos(
       buffer_length,
-      initial_x,
+      // initial_x,
       Math.PI,
       v
     )
@@ -29,7 +29,7 @@ async function generate_sine(array) {
 async function init_processor(processor, processorOptions) {
   const { sin, cos } = await generate_sine(processorOptions.trig_module);
   for (const i of Array.from({ length: 10 }, (_, i) => i)) {
-    console.log(i, "pi/5", sin(i * Math.PI / 5));
+    console.log(i, "pi/5", cos(i * Math.PI / 5));
   }
 
   let memory = new WebAssembly.Memory({ initial: 1, maximum: 1, shared: true });

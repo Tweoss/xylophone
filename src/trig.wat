@@ -12,6 +12,12 @@
 		i32.mul
 		i32.load
 	)
+	(func $load_f32 (param $index i32) (result f32)
+		i32.const 4
+		local.get $index
+		i32.mul
+		f32.load
+	)
 	(func $store_i32 (param $index i32) (param $value i32)
 		i32.const 4
 		local.get $index
@@ -19,29 +25,36 @@
 		local.get $value
 		i32.store
 	)
+	(func $store_f32 (param $index i32) (param $value f32)
+		i32.const 4
+		local.get $index
+		i32.mul
+		local.get $value
+		f32.store
+	)
 	;; write sine wave to buffer
 	;; via minsky's algorithm
 	(func (export "write_sin")
-		(param $divider i32)
-		(param $initial_x i32)
+		;; (param $initial_x f32)
+		(param $divider f32)
 		(result i32)
-		(local $x i32)
-		(local $y i32)
+		(local $x f32)
+		(local $y f32)
 		(local $i i32)
 		(local $hit_negative i32)
 
 		i32.const 0
 		local.set $i
 
-		local.get $initial_x
+		f32.const 1
 		local.set $x
-		i32.const 0
+		f32.const 0
 		local.set $y
 
 		loop $l
 			local.get $i
 			local.get $y
-			call $store_i32
+			call $store_f32
 
 			local.get $i
 			i32.const 1
@@ -52,14 +65,14 @@
 			local.get $x
 			local.get $y
 			local.get $divider
-			i32.div_s
-			i32.sub
+			f32.div
+			f32.sub
 			;; calculate y + x/divider
 			local.get $y
 			local.get $x
 			local.get $divider
-			i32.div_s
-			i32.add
+			f32.div
+			f32.add
 			;; store to y
 			local.set $y
 			;; store to x
@@ -69,16 +82,16 @@
 			;; could just exit when y hits negatives.
 
 			local.get $y
-			i32.const 0
-			i32.lt_s
+			f32.const 0
+			f32.lt
 			local.get $hit_negative
 			i32.or
 			local.set $hit_negative
 
 			;; if we're back to positive, that's a loop
 			local.get $y
-			i32.const 0
-			i32.gt_s
+			f32.const 0
+			f32.gt
 			local.get $hit_negative
 			i32.and
 			if
@@ -117,12 +130,12 @@
 	;; needs write_sin first
 	(func $sin (export "sin")
 		(param $buffer_length i32)
-		(param $initial_x i32)
+		;; (param $initial_x f32)
 		(param $pi f32)
 		(param $v f32)
 		(result f32)
 		(local $floored f32)
-		(local $debug i32)
+		;; (local $debug i32)
 
 		;; scale down by 2pi
 		local.get $v
@@ -157,28 +170,28 @@
 		;; local.get $debug
 		;; call $log
 
-		call $load_i32
-		f32.convert_i32_s
+		call $load_f32
+		;; f32.convert_i32_s
 
-		local.get $initial_x
-		f32.convert_i32_u
-		f32.div
+		;; local.get $initial_x
+		;; f32.convert_i32_u
+		;; f32.div
 	)
 	
 	(func (export "cos")
 		(param $buffer_length i32)
-		(param $initial_x i32)
+		;; (param $initial_x i32)
 		(param $pi f32)
 		(param $v f32)
 		(result f32)
 
 		local.get $buffer_length
-		local.get $initial_x
+		;; local.get $initial_x
 		local.get $pi
 
-		;; sin(x+pi/4)
+		;; sin(x+pi/2)
 		local.get $pi
-		f32.const 4
+		f32.const 2
 		f32.div
 		local.get $v
 		f32.add
