@@ -56,7 +56,6 @@ export async function init() {
     last_data = data;
     // console.log(data);
     // TODO: better scaling factor?
-    const max = 100;
     // const max = data.reduce((a, e) => (a > e ? a : e), 1);
     if (!bars) {
       bars = data.map((_, i) => {
@@ -67,22 +66,20 @@ export async function init() {
         rect.setAttribute("height", "00");
         rect.setAttribute("width", (100 / data.length).toString());
 
-        const rotation = ((1 + Math.sqrt(5)) / 2) * 10;
-        rect.setAttribute(
-          "fill",
-          `hsl(${360 * ((rotation * i) % 1)}, 90%, 90%)`,
-        );
+        // const rotation = ((1 + Math.sqrt(5)) / 2) * 10;
+        const rotation = Math.pow(i / 7, 1.2);
+        // const rotation = 1 / 7;
+        rect.setAttribute("fill", `hsl(${360 * (rotation % 1)}, 90%, 90%)`);
         target.appendChild(rect);
         return rect;
       });
     }
 
-    const scale_factor = 20;
-    for (const [i, value] of data.map((d) => (d / max) * 10).entries()) {
-      const v = Math.max(
-        0,
-        scale_factor * (isNaN(value) ? 0 : Math.max(0, value)),
-      );
+    const scale_factor = 10;
+    for (const [i, value] of data.entries()) {
+      const v =
+        scale_factor *
+        Math.max(0, Math.log(isNaN(value) ? 1 : Math.max(1, value)));
       bars[i].setAttribute("y", (-v + 70).toString());
       bars[i].setAttribute("height", v.toString());
     }
