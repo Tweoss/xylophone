@@ -1,29 +1,11 @@
 (module
 	(func $log (import "imports" "log") (param i32))
 	(memory $mem (import "imports" "mem") 1 1 shared)
-	(func $add (param $lhs f32) (param $rhs f32) (result f32)
-		local.get $lhs
-		local.get $rhs
-		f32.add
-	)
-	(func $load_i32 (param $index i32) (result i32)
-		i32.const 4
-		local.get $index
-		i32.mul
-		i32.load
-	)
 	(func $load_f32 (param $index i32) (result f32)
 		i32.const 4
 		local.get $index
 		i32.mul
 		f32.load
-	)
-	(func $store_i32 (param $index i32) (param $value i32)
-		i32.const 4
-		local.get $index
-		i32.mul
-		local.get $value
-		i32.store
 	)
 	(func $store_f32 (param $index i32) (param $value f32)
 		i32.const 4
@@ -35,7 +17,6 @@
 	;; write sine wave to buffer
 	;; via minsky's algorithm
 	(func (export "write_sin")
-		;; (param $initial_x f32)
 		(param $divider f32)
 		(result i32)
 		(local $x f32)
@@ -99,28 +80,6 @@
 				return
 			end
 
-			;; i32.const 1234
-			;; call $log
-			;; local.get $x
-			;; call $log
-			;; local.get $y
-			;; call $log
-
-			;; ;; if we haven't reached inital x or the iteration < 1, then branch
-			;; local.get $x
-			;; local.get $initial_x
-			;; i32.ne
-			;; local.get $i
-			;; i32.const 2
-			;; i32.lt_u
-			;; i32.or
-
-			;; ;; ensure iteration is less than some number
-			;; local.get $i
-			;; i32.const 200
-			;; i32.lt_u
-			;; i32.and
-			;; br_if $l
 			br $l
 		end
 
@@ -130,12 +89,10 @@
 	;; needs write_sin first
 	(func $sin (export "sin")
 		(param $buffer_length i32)
-		;; (param $initial_x f32)
 		(param $pi f32)
 		(param $v f32)
 		(result f32)
 		(local $floored f32)
-		;; (local $debug i32)
 
 		;; scale down by 2pi
 		local.get $v
@@ -153,40 +110,20 @@
 		f32.convert_i32_u
 		f32.mul
 
-	
-
 		;; TODO: linear interp?
 		f32.floor
 		i32.trunc_f32_u
 		
-		;; ;; log index
-		;; local.tee $debug
-		;; local.get $debug
-		;; call $log
-
-		;; local.tee $debug
-		;; i32.const 1234
-		;; call $log
-		;; local.get $debug
-		;; call $log
-
 		call $load_f32
-		;; f32.convert_i32_s
-
-		;; local.get $initial_x
-		;; f32.convert_i32_u
-		;; f32.div
 	)
 	
 	(func (export "cos")
 		(param $buffer_length i32)
-		;; (param $initial_x i32)
 		(param $pi f32)
 		(param $v f32)
 		(result f32)
 
 		local.get $buffer_length
-		;; local.get $initial_x
 		local.get $pi
 
 		;; sin(x+pi/2)

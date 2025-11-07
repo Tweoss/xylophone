@@ -3,23 +3,19 @@ async function generate_sine(array) {
   const obj = await WebAssembly.instantiate(array, {
     imports: { log: console.log, mem: memory },
   });
-  const initial_x = 1024;
   const delta_divider = 20.0;
   const buffer_length = obj.instance.exports.write_sin(
     delta_divider,
-    // initial_x,
   );
   console.log(new Float32Array(memory.buffer).slice(0, buffer_length))
 
   return {
     sin: (v) => obj.instance.exports.sin(
       buffer_length,
-      // initial_x,
       Math.PI,
       v
     ), cos: (v) => obj.instance.exports.cos(
       buffer_length,
-      // initial_x,
       Math.PI,
       v
     )
@@ -92,7 +88,6 @@ class ForwardProcessor extends AudioWorkletProcessor {
       const scores = freqs.flatMap(v => Math.hypot(
         this.instance.exports.dot_product_sin(this.sample_rate, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
         this.instance.exports.dot_product_cos(this.sample_rate, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
-        // this.instance.exports.dot_product_cos(44100, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
         // this.instance.exports.dot_product_sin(48000, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
         // this.instance.exports.dot_product_cos(48000, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
       ));
