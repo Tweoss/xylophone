@@ -18,7 +18,12 @@
   <p id="text-out"></p>
   <svg id="container" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
   </svg>
-  <button id="init">click me</button>
+  <button id="init">Initialize</button>
+  <button onclick="document.querySelector('#audio-file-input').value = ''">Clear Input</button>
+  <form>
+    <label for="audio-file-input">use mic or load an audio file</label>
+    <input id="audio-file-input" type="file" accept=".m4a,.mp3,mp4,.wav"></input>
+  </form>
 </body>
 
 <script type="module" src="build/index.js"></script>

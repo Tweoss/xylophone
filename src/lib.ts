@@ -1,15 +1,21 @@
 let initializing = false;
 
-export async function init() {
+export async function init(source_audio?: HTMLAudioElement) {
   if (initializing) return;
   initializing = true;
   const audio_context = new AudioContext();
   await audio_context.audioWorklet.addModule("./build/worklet.js");
-  const input = audio_context.createMediaStreamSource(
-    await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: false },
-    }),
-  );
+  let input: MediaElementAudioSourceNode | MediaStreamAudioSourceNode;
+  if (source_audio) {
+    input = audio_context.createMediaElementSource(source_audio);
+    input.connect(audio_context.destination);
+  } else {
+    input = audio_context.createMediaStreamSource(
+      await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: false },
+      }),
+    );
+  }
   console.log(input);
   console.log(audio_context.destination);
 
