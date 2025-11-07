@@ -34,29 +34,23 @@ export async function init() {
   // TODO: make better "debouncing" system
   let ignore_next = false;
   processor_node.port.onmessage = (e) => {
+    const NOISE_THRESHOLD = 10;
+    const DOT_PRODUCT_THRESHOLD = 15;
     const data: number[] = e.data;
-    if (!ignore_next) {
-      if (last_data) {
-        const delta = data.map((v, i) => v - last_data[i]);
-        const [max, max_i] = delta.reduce(
-          ([a, ai], e, i) => (a > e ? [a, ai] : [e, i]),
-          [0, -1],
-        );
-        const DOT_PRODUCT_THRESHOLD = 15;
-        if (max > DOT_PRODUCT_THRESHOLD) {
-          decoder.push(max_i);
-          log_element.innerText = decoder.get_state();
-          console.log("large deltas: ", delta, max_i);
-          ignore_next = true;
-        }
+    if (!ignore_next && last_data && data.toSorted()[0] < NOISE_THRESHOLD) {
+      const delta = data.map((v, i) => [i, v - last_data[i]]);
+      const sorted = delta.toSorted((a, b) => b[1] - a[1]);
+      const [a, b] = sorted.slice(0, 2);
+      if (Math.min(a[1], b[1]) > DOT_PRODUCT_THRESHOLD) {
+        decoder.push(a[0], b[0]);
+        console.log("big delta", a, b);
+        log_element.innerText = decoder.get_state();
+        ignore_next = true;
       }
     } else {
       ignore_next = false;
     }
     last_data = data;
-    // console.log(data);
-    // TODO: better scaling factor?
-    // const max = data.reduce((a, e) => (a > e ? a : e), 1);
     if (!bars) {
       bars = data.map((_, i) => {
         const svgns = "http://www.w3.org/2000/svg";
@@ -75,6 +69,7 @@ export async function init() {
       });
     }
 
+    // TODO: better scaling factor?
     const scale_factor = 10;
     for (const [i, value] of data.entries()) {
       const v =
@@ -90,37 +85,115 @@ export async function init() {
 }
 
 function create_decoder() {
-  let pending = [];
-  let decoded = "";
-  let parse = () => {
-    if (pending.length == 2) {
-      const [x, y] = pending;
-      const flattened = x * 8 + y;
-      const capital_letter_range = [65, 90] as const;
-      const space_number_range = [32, 57] as const;
-      const range_len = (v: readonly [number, number]) => v[1] - v[0] + 1;
-      if (flattened < range_len(capital_letter_range))
-        decoded += String.fromCodePoint(flattened + capital_letter_range[0]);
-      else if (
-        flattened - range_len(capital_letter_range) <
-        range_len(space_number_range)
-      )
-        decoded += String.fromCodePoint(
-          flattened - range_len(capital_letter_range) + space_number_range[0],
-        );
-      else if (flattened == 7 * 8 + 7) {
-        decoded = decoded.slice(0, -1);
-      }
-      pending = [];
-    }
+  type State = "Normal" | "Escape" | "Shift";
+
+  const get_index = (note_pair: [number, number]) => {
+    note_pair.sort();
+
+    const [n1, n2] = note_pair;
+    const index = (8 * 7) / 2 - ((8 - n1) * (7 - n1)) / 2 + (n2 - n1 - 1);
+    return index;
   };
+
+  const normal_map = (index: number) => {
+    if (index < 26) {
+      const lowercase_letter_start = 97;
+      return {
+        action: "Letter" as const,
+        value: String.fromCodePoint(lowercase_letter_start + index),
+        state: "Normal" as State,
+      };
+    }
+    if (index == 26)
+      return {
+        action: "Repeat" as const,
+        state: "Normal" as State,
+      };
+    if (index == 27)
+      return { action: "None" as const, state: "Escape" as State };
+  };
+
+  const escape_map = (index: number) => {
+    if (index == 0)
+      return {
+        action: "Delete" as const,
+        state: "Normal" as State,
+      };
+    if (index == 1)
+      return {
+        action: "Return" as const,
+        state: "Normal" as State,
+      };
+    if (index == 2) return { action: "None" as const, state: "Shift" as State };
+    return null;
+  };
+
+  type Result = ReturnType<typeof normal_map> | ReturnType<typeof escape_map>;
+
+  let state = "Normal" as State;
+  let decoded = "";
+  let last_result: Result | null = null;
+
+  function handle_action(result: Result) {
+    const action = result.action;
+    console.log("got action", result);
+    switch (action) {
+      case "Letter":
+        decoded += result.value;
+        last_result = result;
+        return;
+      case "Delete":
+        decoded = decoded.slice(0, -1);
+        last_result = result;
+        return;
+      case "Repeat":
+        if (last_result && last_result.action != "Repeat") {
+          console.log("repeating action", last_result);
+          // TODO: could be inconsistent
+          handle_action(last_result);
+        }
+        return;
+      case "Return":
+        decoded += "\n";
+        last_result = result;
+        return;
+      case "None":
+        last_result = result;
+        return;
+      default:
+        const exhaustiveCheck: never = result;
+        throw new Error(`Unhandled case: ${exhaustiveCheck}`);
+    }
+  }
+
   return {
-    push: (note: number) => {
-      pending.push(note);
-      parse();
+    push: (note_a: number, note_b: number) => {
+      const index = get_index([note_a, note_b]);
+      console.log("index ", index);
+      if (state == "Normal") {
+        const result = normal_map(index);
+        console.log(result);
+        handle_action(result);
+        state = result.state;
+      } else if (state == "Escape") {
+        const result = escape_map(index);
+        console.log(result);
+        if (result) {
+          handle_action(result);
+          state = result.state;
+        }
+      } else if (state == "Shift") {
+        const result = normal_map(index);
+        console.log(result);
+        if (result.action == "Letter") {
+          result.value = result.value.toUpperCase();
+          handle_action(result);
+        }
+        state = result.state;
+      }
     },
     get_state: () => {
-      return `pending: [${pending.toString()}], decoded: ${decoded}`;
+      return `decoded: ${decoded}`;
     },
   };
 }

@@ -24,9 +24,6 @@ async function generate_sine(array) {
 
 async function init_processor(processor, processorOptions) {
   const { sin, cos } = await generate_sine(processorOptions.trig_module);
-  for (const i of Array.from({ length: 10 }, (_, i) => i)) {
-    console.log(i, "pi/5", cos(i * Math.PI / 5));
-  }
 
   let memory = new WebAssembly.Memory({ initial: 1, maximum: 1, shared: true });
   processor.memory = new Float32Array(memory.buffer);
@@ -52,7 +49,6 @@ class ForwardProcessor extends AudioWorkletProcessor {
 
     // Spawn off init.
     init_processor(this, processorOptions);
-    // console.log(sin(Math.PI));
     this.counter = 0;
     this.sample_rate = processorOptions.sample_rate;
   }
@@ -91,15 +87,6 @@ class ForwardProcessor extends AudioWorkletProcessor {
         // this.instance.exports.dot_product_sin(48000, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
         // this.instance.exports.dot_product_cos(48000, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
       ));
-      const best_index = scores
-        .reduce((pv, cv, i) => {
-          if (pv.value < cv) {
-            return { value: cv, index: i };
-          }
-          return pv;
-        }, { value: 0, index: -1 });
-      const f = (best_index.index % 2 == 0) ? "sin" : "cos";
-      const freq = (best_index.index == -1) ? 0 : freqs[best_index.index >> 1];
       this.port.postMessage(scores);
     }
 
