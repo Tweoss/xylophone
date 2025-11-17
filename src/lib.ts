@@ -131,7 +131,7 @@ function create_decoder() {
         state: "Normal" as State,
       };
     if (index == 2) return { action: "None" as const, state: "Shift" as State };
-    return null;
+    return { action: "None" as const, state: "Normal" as State };
   };
 
   type Result = ReturnType<typeof normal_map> | ReturnType<typeof escape_map>;
@@ -199,7 +199,7 @@ function create_decoder() {
       }
     },
     get_state: () => {
-      return `decoded: ${decoded}`;
+      return `state: ${state}, decoded: ${decoded}`;
     },
   };
 }
