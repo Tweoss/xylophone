@@ -1,4 +1,6 @@
 let initializing = false;
+const OSCILLOSCOPE_HEIGHT = 100;
+const OSCILLOSCOPE_WIDTH = 200;
 
 export async function init(source_audio?: HTMLAudioElement) {
   if (initializing) return;
@@ -16,8 +18,19 @@ export async function init(source_audio?: HTMLAudioElement) {
       }),
     );
   }
+
   console.log(input);
   console.log(audio_context.destination);
+
+  const analyser = audio_context.createAnalyser();
+  input.connect(analyser);
+  const oscilloscope_canvas = document.querySelector(
+    "#oscilloscope",
+  ) as HTMLCanvasElement;
+  oscilloscope_canvas.style.width = `${OSCILLOSCOPE_WIDTH}px`;
+  oscilloscope_canvas.style.height = `${OSCILLOSCOPE_HEIGHT}px`;
+  const scope_ctx = oscilloscope_canvas.getContext("2d");
+  draw_oscilloscope(analyser, scope_ctx);
 
   const processor_node = new AudioWorkletNode(
     audio_context,
@@ -40,16 +53,22 @@ export async function init(source_audio?: HTMLAudioElement) {
   // TODO: make better "debouncing" system
   let ignore_next = false;
   processor_node.port.onmessage = (e) => {
-    const NOISE_THRESHOLD = 10;
-    const DOT_PRODUCT_THRESHOLD = 15;
+    const NOISE_RATIO_THRESHOLD = 0.2;
+    const DOT_PRODUCT_INCREASE_THRESHOLD = 10;
     const data: number[] = e.data;
-    if (!ignore_next && last_data && data.toSorted()[0] < NOISE_THRESHOLD) {
+    if (!ignore_next && last_data) {
       const delta = data.map((v, i) => [i, v - last_data[i]]);
       const sorted = delta.toSorted((a, b) => b[1] - a[1]);
-      const [a, b] = sorted.slice(0, 2);
-      if (Math.min(a[1], b[1]) > DOT_PRODUCT_THRESHOLD) {
+      const [a, b, c] = sorted.slice(0, 3);
+      // If the third largest element increase is much smaller than the second largest, then we have a strong signal.
+      // const sorted = data.toSorted();
+      const ratio = c[1] / b[1];
+      if (
+        ratio < NOISE_RATIO_THRESHOLD &&
+        Math.min(a[1], b[1]) > DOT_PRODUCT_INCREASE_THRESHOLD
+      ) {
         decoder.push(a[0], b[0]);
-        console.log("big delta", a, b);
+        console.log("big delta", a, b, "ratio", ratio);
         log_element.innerText = decoder.get_state();
         ignore_next = true;
       }
@@ -88,6 +107,44 @@ export async function init(source_audio?: HTMLAudioElement) {
 
   input.connect(processor_node);
   processor_node.connect(audio_context.destination);
+}
+
+let dataArray: Float32Array | null = null;
+function draw_oscilloscope(
+  analyser: AnalyserNode,
+  ctx: CanvasRenderingContext2D,
+) {
+  if (dataArray == null) {
+    dataArray = new Float32Array(analyser.frequencyBinCount);
+  }
+  const buffer_length = dataArray.length;
+
+  analyser.getFloatTimeDomainData(dataArray);
+  ctx.fillStyle = "rgb(256 256 256)";
+  ctx.fillRect(0, 0, OSCILLOSCOPE_WIDTH, OSCILLOSCOPE_HEIGHT);
+  // Begin the path
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgb(0 0 0)";
+  ctx.beginPath();
+  // Draw each point in the waveform
+  const sliceWidth = OSCILLOSCOPE_WIDTH / buffer_length;
+  let x = 0;
+  for (let i = 0; i < buffer_length; i++) {
+    const y = dataArray[i] * 100 + OSCILLOSCOPE_HEIGHT / 2;
+
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+
+    x += sliceWidth;
+  }
+  // Finish the line
+  ctx.lineTo(OSCILLOSCOPE_WIDTH, OSCILLOSCOPE_HEIGHT / 2);
+  ctx.stroke();
+  // ctx.clearRect(0, 0, 2 * OSCILLOSCOPE_WIDTH, 2 * OSCILLOSCOPE_HEIGHT);
+  requestAnimationFrame(() => draw_oscilloscope(analyser, ctx));
 }
 
 function create_decoder() {

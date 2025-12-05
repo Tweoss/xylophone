@@ -68,6 +68,7 @@ class ForwardProcessor extends AudioWorkletProcessor {
 
     const DATA_BLOCK_LEN = 128;
     const DATA_BLOCK_CHUNKS = 17;
+    // const DATA_BLOCK_CHUNKS = 17;
     // const DATA_BLOCK_CHUNKS = 100;
     if (DATA_BLOCK_LEN != input[0].length)
       throw Error("mismatched length");
@@ -79,8 +80,19 @@ class ForwardProcessor extends AudioWorkletProcessor {
         // C major scale
         [
           // 3, 4, 5,6, 7, 8, 9, 10, 11, 12,13,  14, 15
-          3, 5, 7, 8, 10, 12, 14, 15
-        ].map(o => 440 * Math.pow(2, 1 + o / 12));
+
+          // This C is really sharp and D starts flat.
+          // Tuned to match most strongly (subdivisions of 1/20)
+          3.05, 4.95, 7, 8, 10.05, 12, 14.05, 15.05
+          // 15 + (1 - 4) * 0.05,
+          // 15 + (2 - 4) * 0.05,
+          // 15 + (3 - 4) * 0.05,
+          // 15 + (4 - 4) * 0.05,
+          // 15 + (5 - 4) * 0.05,
+          // 15 + (6 - 4) * 0.05,
+          // 15 + (7 - 4) * 0.05,
+          // 15 + (8 - 4) * 0.05,
+        ].map(o => 441 * Math.pow(2, 1 + o / 12));
       const scores = freqs.flatMap(v => Math.hypot(
         this.instance.exports.dot_product_sin(this.sample_rate, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
         this.instance.exports.dot_product_cos(this.sample_rate, v, 0, DATA_BLOCK_CHUNKS * DATA_BLOCK_LEN, Math.PI),
